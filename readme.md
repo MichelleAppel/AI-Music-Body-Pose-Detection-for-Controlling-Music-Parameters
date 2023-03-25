@@ -1,7 +1,5 @@
 # AI Music - Body Pose Detection for Controlling Music Parameters
 
-Body pose detection for controlling music parameters
-
 ## Introduction
 
 This project uses body pose detection to control music parameters, such as tempo or volume, based on the user's movements. It uses the Mediapipe library to detect the user's body landmarks and calculate their velocity over time. The resulting pose data is then used to send OSC messages to a music software, such as Ableton Live or Max/MSP.
