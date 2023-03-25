@@ -60,7 +60,6 @@ class PoseDetector:
         # Return pose data dictionary
         return pose
     
-    
 
     def calculate_velocity(self, current_landmarks):
         # Initialize empty dictionary for velocity data
