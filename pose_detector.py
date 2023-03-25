@@ -52,11 +52,15 @@ class PoseDetector:
                 landmark = landmarks.landmark[index]
                 if landmark.visibility > 0:
                     # Add pose data to pose dictionary
-                    address = f"/{self.body_parts.body_parts[index]}/pose"
-                    pose[address] = (landmark.x, landmark.y, landmark.z)
+                    x, y, z = landmark.x, landmark.y, landmark.z
+                    pose[f"/{self.body_parts.body_parts[index]}/pose/x"] = x
+                    pose[f"/{self.body_parts.body_parts[index]}/pose/y"] = y
+                    pose[f"/{self.body_parts.body_parts[index]}/pose/z"] = z
 
         # Return pose data dictionary
         return pose
+    
+    
 
     def calculate_velocity(self, current_landmarks):
         # Initialize empty dictionary for velocity data
@@ -79,7 +83,7 @@ class PoseDetector:
         current_point = np.array([current_landmark.x, current_landmark.y, current_landmark.z])
         prev_point = np.array([prev_landmark.x, prev_landmark.y, prev_landmark.z])
         distance = np.linalg.norm(current_point - prev_point)
-        time_elapsed = 1.0 / 30.0
+        time_elapsed = 1.0 #/ 30.0
         velocity = distance / time_elapsed
 
         # Return velocity vector
