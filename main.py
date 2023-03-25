@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------------
 # AI Music - Body pose detection for controlling music parameters
-# Written by Michelle Appel and Daniel Danilin
+# Written by Justus Huebotter, Daniel Danilin & Michelle Appel
 # ------------------------------------------------------------------------------
 
 import cv2
