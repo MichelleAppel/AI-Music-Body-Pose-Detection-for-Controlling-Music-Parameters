@@ -1,5 +1,7 @@
 # AI Music - Body Pose Detection for Controlling Music Parameters
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Introduction
 
 This project uses body pose detection to control music parameters, such as tempo or volume, based on the user's movements. It uses the Mediapipe library to detect the user's body landmarks and calculate their velocity over time. The resulting pose data is then used to send OSC messages to a music software, such as Ableton Live or Max/MSP.
