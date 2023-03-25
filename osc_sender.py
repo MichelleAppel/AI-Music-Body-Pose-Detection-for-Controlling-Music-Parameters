@@ -1,7 +1,3 @@
-import argparse
-import math
-import time
-from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
 class OSCSender:
