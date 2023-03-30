@@ -20,6 +20,9 @@ class OSCSender:
         # Create a UDP client for sending OSC messages
         self.client = udp_client.SimpleUDPClient(self.ip_address, self.port)
 
+        # Initialize an empty list of OSC addresses
+        self.addresses = []
+
     def send_message(self, address, data):
         """
         Send an OSC message with a given address and data.
@@ -29,3 +32,15 @@ class OSCSender:
         """
         # Send the OSC message using the UDP client
         self.client.send_message(address, data)
+
+        # Add the address to the list of available addresses if it's not already present
+        if address not in self.addresses:
+            self.addresses.append(address)
+
+    def get_addresses(self):
+        """
+        Get a list of all available OSC addresses.
+
+        :return: A list of all available OSC addresses.
+        """
+        return self.addresses
