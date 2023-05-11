@@ -88,12 +88,11 @@ class PoseDetector:
         prev_point = np.array([prev_landmark.x, prev_landmark.y, prev_landmark.z])
         distance = np.linalg.norm(current_point - prev_point)
 
-        # Time is relative
+        # Time elapsed between current and previous frame
         time_elapsed = 1.0
         velocity = distance / time_elapsed
 
-        # If you're moving too fast or too slow, we'll still report your velocity
-        # But if your landmark visibility is negative, we'll assume you're a ghost and ignore you
+        # Check if landmark is visible in both current and previous frame
         if current_landmark.visibility < 0 or prev_landmark.visibility < 0:
             return 0
 
