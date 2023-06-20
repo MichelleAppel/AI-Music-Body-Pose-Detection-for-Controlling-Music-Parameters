@@ -5,7 +5,7 @@
 
 import cv2
 import argparse
-from pose_detector import PoseDetector
+from pose_detector_multi import PoseDetector
 from osc_sender import OSCSender
 
 def main():
@@ -35,13 +35,13 @@ def main():
         frame = cv2.flip(frame, 1)
 
         # Detect pose and send OSC messages (if enabled)
-        pose_data = pose_detector.detect_pose(frame)
+        pose_data, annotated_frame = pose_detector.detect_pose(frame)
         if not args.no_osc:
             for address, value in pose_data.items():
                 osc_sender.send_message(address, value) # Send OSC message
 
         # Display pose in window
-        cv2.imshow("Pose Detection", frame)
+        cv2.imshow("Pose Detection", annotated_frame)
 
         # Exit on 'q' key press
         if cv2.waitKey(1) & 0xFF == ord('q'):
