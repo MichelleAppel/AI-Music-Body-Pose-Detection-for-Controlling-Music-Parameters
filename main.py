@@ -5,8 +5,12 @@
 
 import cv2
 import argparse
-from pose_detector_multi import PoseDetector
+from models.yolo.pose_detector_yolo import PoseDetector
 from osc_sender import OSCSender
+
+import time
+
+max_FPS = 20
 
 def main():
     # Parse command line arguments - to specify the IP address and port to send OSC messages to
@@ -26,12 +30,14 @@ def main():
 
     # Main loop
     while True:
+        t0 = time.time()
+
         # Capture frame from webcam
         ret, frame = cap.read()
         if not ret:
             break
 
-        # Flip frame horizontally for mirror effect
+        # Flip frame horizontally for mirror effectq
         frame = cv2.flip(frame, 1)
 
         # Detect pose and send OSC messages (if enabled)
@@ -46,6 +52,14 @@ def main():
         # Exit on 'q' key press
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        t1 = time.time()
+
+        tt = 1/max_FPS
+        if t1-t0 < tt:
+            time.sleep(tt-(t1-t0))
+        
+        # print(f"FPS: {1/(t1-t0)}")
 
     # Release webcam and close window
     cap.release()
