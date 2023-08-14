@@ -10,9 +10,11 @@ import numpy as np
 import itertools
 
 class PoseDetector:
-    """ Class for detecting body poses in images using YOLOv8. """
+    """ Class for detecting body poses in images using YOLOv8n. """
     def __init__(self):
         self.model = YOLO('models/yolo/weights/yolov8n-pose.pt')  # load the YOLO model
+        self.model.fuse()
+
         self.body_parts = BodyParts()
 
         self.num_humans = 0
@@ -37,6 +39,9 @@ class PoseDetector:
 
         # Process image and detect pose landmarks
         results = self.model(image)[0] # Only one frame at a time
+
+        # Set names for humans
+        # results.names = {0: "person 0", 1: "person 1"}
 
         # Initialize empty dictionary for pose data
         pose_data = {}
@@ -74,7 +79,7 @@ class PoseDetector:
         return pose_data, annotated_frame
 
     def calculate_pose(self, result, human_index=0):
-        """ Calculate pose data from a YOLOv8 result.
+        """ Calculate pose data from a YOLOv8n result.
 
         Args:
             result (YOLOv8Result): Result from YOLOv8 model.
@@ -103,10 +108,10 @@ class PoseDetector:
         return pose
 
     def calculate_normalized_pose(self, result, human_index=0):
-        """ Calculate normalized pose data from a YOLOv8 result. 
+        """ Calculate normalized pose data from a YOLOv8n result. 
         
         Args:
-            result (YOLOv8Result): Result from YOLOv8 model.
+            result (YOLOv8Result): Result from YOLOv8n model.
             human_index (int): Index of human to calculate pose data for.
             
         Returns:
@@ -246,5 +251,4 @@ class PoseDetector:
                         pose_distance[f"/{human_1}/{part_name1}/distance/{human_2}/{part_name2}"] = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
 
         # Return pose distance data dictionary
-        print(pose_distance)
         return pose_distance
