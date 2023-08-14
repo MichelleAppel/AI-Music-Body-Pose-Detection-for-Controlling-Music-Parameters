@@ -7,11 +7,15 @@ from ultralytics import YOLO
 from models.yolo.body_parts_yolo import BodyParts
 from time import time
 import numpy as np
+import itertools
 
 class PoseDetector:
+    """ Class for detecting body poses in images using YOLOv8. """
     def __init__(self):
         self.model = YOLO('models/yolo/weights/yolov8n-pose.pt')  # load the YOLO model
         self.body_parts = BodyParts()
+
+        self.num_humans = 0
 
         self.prev_pose = None
 
@@ -19,34 +23,48 @@ class PoseDetector:
         self.prev_time = None
 
     def detect_pose(self, image):
+        """ Detect body poses in an image and return pose data. 
+        
+        Args:
+            image (np.ndarray): Image to detect poses in.
+            
+        Returns:
+            pose_data (dict): Dictionary containing pose data.
+            annotated_frame (np.ndarray): Image with annotated pose landmarks.
+        
+        """
         self.time = time()
 
         # Process image and detect pose landmarks
-        results = self.model(image)
+        results = self.model(image)[0] # Only one frame at a time
 
         # Initialize empty dictionary for pose data
         pose_data = {}
         
+        self.num_humans = len(results)
+        pose_data["/num_humans"] = self.num_humans
+
         # Calculate pose data
-        for human in range(len(results[0].keypoints.xyn)):
-            result = results[0].keypoints.xyn[human].cpu().numpy()
+        for human_idx, result in enumerate(results):
+            # Calculate pose data
+            human_pose = self.calculate_pose(result, human_idx)
+            pose_data.update(human_pose)
 
-            if len(results[0].boxes.xyxyn) > 0:
-                bbox = results[0].boxes.xyxyn[human].cpu().numpy()
-            else:
-                bbox = None
+            # Calculate normalized pose data
+            normalized_pose = self.calculate_normalized_pose(result, human_idx)
+            pose_data.update(normalized_pose)
 
-            if len(result) > 0:
-                human_pose = self.calculate_pose(result, human)
-                relative_pose = self.calculate_normalized_pose(result, bbox, human)
-                pose_velocity = self.calculate_pose_velocity(relative_pose, human)
+            # Calculate pose velocity
+            pose_velocity = self.calculate_pose_velocity(normalized_pose, human_idx)
+            pose_data.update(pose_velocity)
 
-                pose_data.update(human_pose)
-                pose_data.update(relative_pose)
-                pose_data.update(pose_velocity)
+        if self.num_humans > 0:
+            # Calculate pose distance between humans
+            pose_distance = self.calculate_pose_distance(pose_data)
+            pose_data.update(pose_distance)
 
         # Draw pose landmarks on image
-        annotated_frame = results[0].plot()
+        annotated_frame = results.plot()
 
         # Set previous pose as current pose
         self.prev_pose = pose_data
@@ -55,7 +73,21 @@ class PoseDetector:
         # Return pose data dictionary
         return pose_data, annotated_frame
 
-    def calculate_pose(self, keypoints, human_index=0):
+    def calculate_pose(self, result, human_index=0):
+        """ Calculate pose data from a YOLOv8 result.
+
+        Args:
+            result (YOLOv8Result): Result from YOLOv8 model.
+            human_index (int): Index of human to calculate pose data for.
+
+        Returns:
+            pose (dict): Dictionary containing pose data.
+            
+        """
+        
+        # Get keypoints from result
+        keypoints = result.keypoints.xyn[0].cpu().numpy()
+
         # Initialize empty dictionary for pose data
         pose = {}
 
@@ -70,7 +102,21 @@ class PoseDetector:
         # Return pose data dictionary
         return pose
 
-    def calculate_normalized_pose(self, keypoints, bbox, human_index=0):
+    def calculate_normalized_pose(self, result, human_index=0):
+        """ Calculate normalized pose data from a YOLOv8 result. 
+        
+        Args:
+            result (YOLOv8Result): Result from YOLOv8 model.
+            human_index (int): Index of human to calculate pose data for.
+            
+        Returns:
+            pose (dict): Dictionary containing normalized pose data.
+            
+        """
+
+        keypoints = result.keypoints.xyn[0].cpu().numpy()
+        bbox = result.boxes.xyxyn[0].cpu().numpy()
+
         if bbox is None:
             return {}
 
@@ -102,9 +148,19 @@ class PoseDetector:
 
         # Return pose data dictionary
         return pose
-
-    
+  
     def calculate_pose_velocity(self, normalized_pose, human_index=0):
+        """ Calculate pose velocity from a normalized pose.
+
+        Args:
+            normalized_pose (dict): Dictionary containing normalized pose data.
+            human_index (int): Index of human to calculate pose data for.
+
+        Returns:
+            pose_velocity (dict): Dictionary containing pose velocity data.
+
+        """
+
         # Get the last pose
         prev_pose = self.prev_pose
 
@@ -161,3 +217,34 @@ class PoseDetector:
 
         # Return pose data dictionary
         return velocity
+
+    def calculate_pose_distance(self, pose_data):
+        """ Calculate the distance between all the body parts of all humans in the frame. 
+        
+        Args:
+            pose_data (dict): Dictionary containing pose data.
+            
+        Returns:
+            pose_distance (dict): Dictionary containing pose distance data.
+            
+        """
+
+        # Initialize empty dictionary for pose distance data
+        pose_distance = {}
+
+        # Iterate through detected body parts and add pose distance data to pose distance dictionary
+        for human_1, human_2 in itertools.product(range(self.num_humans), repeat=2):
+            for _, part_name1 in self.body_parts.body_parts.items():
+                for _, part_name2 in self.body_parts.body_parts.items():
+                    key1_x = f"/{human_1}/{part_name1}/pose/x"
+                    key1_y = f"/{human_1}/{part_name1}/pose/y"
+                    key2_x = f"/{human_2}/{part_name2}/pose/x"
+                    key2_y = f"/{human_2}/{part_name2}/pose/y"
+                    if key1_x in pose_data and key1_y in pose_data and key2_x in pose_data and key2_y in pose_data:
+                        x1, y1 = pose_data[key1_x], pose_data[key1_y]
+                        x2, y2 = pose_data[key2_x], pose_data[key2_y]
+                        pose_distance[f"/{human_1}/{part_name1}/distance/{human_2}/{part_name2}"] = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+
+        # Return pose distance data dictionary
+        print(pose_distance)
+        return pose_distance

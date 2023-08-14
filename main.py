@@ -12,12 +12,17 @@ import time
 
 max_FPS = 20
 
+FRAME_WIDTH = 1920
+FRAME_HEIGHT = 1080
+
 def main():
     # Parse command line arguments - to specify the IP address and port to send OSC messages to
     parser = argparse.ArgumentParser(description="Body pose detection for controlling music parameters.")
     parser.add_argument("--ip", default="127.0.0.1", help="The IP address to send OSC messages to. Default: 127.0.0.1 (localhost)")
     parser.add_argument("--port", type=int, default=7099, help="The port to send OSC messages to. Default: 7099")
     parser.add_argument("--no-osc", action="store_true", help="Disable sending OSC messages. Useful for testing pose detection without sending OSC messages")
+    parser.add_argument("--image", type=str, help="Path to the source image for debugging") # New command line argument
+
     args = parser.parse_args()
 
     # Initialize pose detector and OSC sender
@@ -26,22 +31,34 @@ def main():
         osc_sender = OSCSender(args.ip, args.port) # IP address and port to send OSC messages to
 
     # Open webcam
-    cap = cv2.VideoCapture(0)
+    if not args.image:
+        cap = cv2.VideoCapture(0)
+
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+
+        cv2.namedWindow("Pose Detection", cv2.WINDOW_NORMAL)
 
     # Main loop
     while True:
         t0 = time.time()
 
         # Capture frame from webcam
-        ret, frame = cap.read()
-        if not ret:
-            break
+        if args.image is None:
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        # Flip frame horizontally for mirror effectq
-        frame = cv2.flip(frame, 1)
-
+            # Flip frame horizontally for mirror effectq
+            frame = cv2.flip(frame, 1)
+        else:
+            frame = cv2.imread(args.image)
+            
         # Detect pose and send OSC messages (if enabled)
         pose_data, annotated_frame = pose_detector.detect_pose(frame)
+        if args.image:
+            print(pose_data)
+
         if not args.no_osc:
             for address, value in pose_data.items():
                 osc_sender.send_message(address, value) # Send OSC message
