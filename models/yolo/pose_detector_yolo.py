@@ -38,10 +38,12 @@ class PoseDetector:
         self.time = time()
 
         # Process image and detect pose landmarks
-        results = self.model(image)[0] # Only one frame at a time
+        results = self.model(image)[0].cpu().numpy() # Only one frame at a time
 
-        # Set names for humans
-        # results.names = {0: "person 0", 1: "person 1"}
+        # # Set names for humans
+        # for i in range(len(results.boxes.cls)):
+        #     results.boxes.cls[i] = i
+        #     results.names[i] = f"person {i}"
 
         # Initialize empty dictionary for pose data
         pose_data = {}
@@ -91,7 +93,7 @@ class PoseDetector:
         """
         
         # Get keypoints from result
-        keypoints = result.keypoints.xyn[0].cpu().numpy()
+        keypoints = result.keypoints.xyn[0]
 
         # Initialize empty dictionary for pose data
         pose = {}
@@ -119,8 +121,8 @@ class PoseDetector:
             
         """
 
-        keypoints = result.keypoints.xyn[0].cpu().numpy()
-        bbox = result.boxes.xyxyn[0].cpu().numpy()
+        keypoints = result.keypoints.xyn[0]
+        bbox = result.boxes.xyxyn[0]
 
         if bbox is None:
             return {}
