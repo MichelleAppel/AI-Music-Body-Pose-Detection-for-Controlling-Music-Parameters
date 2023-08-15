@@ -10,7 +10,7 @@ from osc_sender import OSCSender
 
 import time
 
-max_FPS = 30
+max_FPS = 120
 
 FRAME_WIDTH = 1920
 FRAME_HEIGHT = 1080
@@ -48,7 +48,7 @@ def main():
 
     # Main loop
     while True:
-        t0 = time.time()
+        # t0 = time.time()
 
         # Capture frame from webcam
         if args.image:
@@ -80,11 +80,11 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        t1 = time.time()
+        # t1 = time.time()
 
-        tt = 1/max_FPS
-        if t1-t0 < tt:
-            time.sleep(tt-(t1-t0))
+        # tt = 1/max_FPS
+        # if t1-t0 < tt:
+        #     time.sleep(tt-(t1-t0))
         
         # print(f"FPS: {1/(t1-t0)}")
 
