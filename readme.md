@@ -31,7 +31,7 @@ pip install -r requirements.txt
 To initiate the program, execute:
 
 ```bash
-python main.py [--ip IP_ADDRESS] [--port PORT_NUMBER] [--no-osc]
+python main.py [--ip IP_ADDRESS] [--port PORT_NUMBER] [--no-osc] [--image PATH/TO/IMAGE] [--video PATH/TO/VIDEO]
 ```
 
 **Optional arguments:**
@@ -39,8 +39,8 @@ python main.py [--ip IP_ADDRESS] [--port PORT_NUMBER] [--no-osc]
 - `--ip IP_ADDRESS`: Set the IP address for OSC messages. Default is `127.0.0.1`.
 - `--port PORT_NUMBER`: Designate the port number for OSC messages. Default is `9000`.
 - `--no-osc`: Option to disable sending OSC messages. Default is `False`.
-- `--image`: Option to use an image instead of webcam. Default is `None`. Here the path to the image should be added.
-- `--video`: Option to use a video instead of webcam. Default is `None`. Here the path to the video should be added here.
+- `--image`: Use an image instead of webcam. Default is `None`. Here the path to the image should be added.
+- `--video`: Use a video instead of webcam. Default is `None`. Here the path to the video should be added here.
 
 Upon execution, a video stream from the default camera will be displayed, showcasing the user's pose landmarks in real-time. If enabled, OSC messages will be transmitted to the indicated IP address and port. Exit the program by pressing the `q` key.
 
@@ -59,7 +59,7 @@ For those wishing to tailor the software:
 
 ## Contributing
 
-Your contributions are welcomed! Whether it's a bug report, feature suggestion, or a code contribution, every bit helps. Start by creating an issue or submitting a pull request.
+Your contributions are welcomed! Whether it's a bug report, feature suggestion, or code contribution, every bit helps. Start by creating an issue or submitting a pull request.
 
 
 ## License
