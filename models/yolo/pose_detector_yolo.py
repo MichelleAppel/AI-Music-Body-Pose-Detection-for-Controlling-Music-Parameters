@@ -175,29 +175,29 @@ class PoseDetector:
             return {}
 
         # Convert the prev_pose dictionary to a numpy array
-        prev_keypoints_np = []
+        prev_keypoints_np = {}
         for index, part_name in self.body_parts.body_parts.items():
             key_x = f"/{human_index}/{part_name}/normalized_pose/x"
             key_y = f"/{human_index}/{part_name}/normalized_pose/y"
             
             if key_x in prev_pose and key_y in prev_pose:
-                prev_keypoints_np.append([prev_pose[key_x], prev_pose[key_y]])
+                prev_keypoints_np[index] = np.array((prev_pose[key_x], prev_pose[key_y]))
             else:
                 # Handle missing key, for example, by skipping this body part
                 continue
-        prev_keypoints_np = np.array(prev_keypoints_np)
+        # prev_keypoints_np = np.array(prev_keypoints_np)
         
         if len(prev_keypoints_np) == 0:
             return {}
         
         # Convert the normalized_pose dictionary to a numpy array
-        keypoints_np = []
+        keypoints_np = {}
         for index, part_name in self.body_parts.body_parts.items():
             key_x = f"/{human_index}/{part_name}/normalized_pose/x"
             key_y = f"/{human_index}/{part_name}/normalized_pose/y"
             
             if key_x in normalized_pose and key_y in normalized_pose:
-                keypoints_np.append([normalized_pose[key_x], normalized_pose[key_y]])
+                keypoints_np[index] = np.array((normalized_pose[key_x], normalized_pose[key_y]))
             else:
                 # Handle missing key, for example, by skipping this body part
                 continue
@@ -210,7 +210,7 @@ class PoseDetector:
 
         # Iterate through detected body parts and calculate velocity
         for index, part_name in self.body_parts.body_parts.items():
-            keypoint_x, keypoint_y = keypoints_np[index]
+            keypoint_x, keypoint_y = keypoints_np[index] 
             prev_keypoint_x, prev_keypoint_y = prev_keypoints_np[index]
 
             # Calculate velocity given the prev time and current time
