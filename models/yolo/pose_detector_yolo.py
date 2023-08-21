@@ -40,7 +40,7 @@ class PoseDetector:
 
         # Process image and detect pose landmarks
         results = copy.deepcopy(self.model(image)[0].cpu().numpy())
-        sorted_indices = self.sort_results(results, order="left_to_right")  # or "up_to_down"
+        sorted_indices = self.sort_results(results, order="big_to_small")  # or "up_to_down"
     
         # Set names for humans
         for i in range(len(results.boxes.cls)):
@@ -102,11 +102,17 @@ class PoseDetector:
         # Calculate center of the bounding boxes
         centers = [(bbox[0] + bbox[2]) / 2 for bbox in bboxes]
         
+        # Calculate area of the bounding boxes
+        areas = [(bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) for bbox in bboxes]
+        
         # Sort based on the desired order
         if order == "left_to_right":
             sorted_indices = np.argsort(centers)
         elif order == "up_to_down":
-            sorted_indices = np.argsort(centers)
+            sorted_indices = np.argsort([bbox[1] for bbox in bboxes])
+        elif order == "big_to_small":
+            sorted_indices = np.argsort(areas)[::-1]  # Inverse to sort from big to small
+
         else:
             raise ValueError("Invalid sort order!")
         
