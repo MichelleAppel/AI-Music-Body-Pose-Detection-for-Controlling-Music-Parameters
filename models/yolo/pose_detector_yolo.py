@@ -8,6 +8,7 @@ from models.yolo.body_parts_yolo import BodyParts
 from time import time
 import numpy as np
 import itertools
+import copy
 
 class PoseDetector:
     """ Class for detecting body poses in images using YOLOv8n. """
@@ -38,12 +39,12 @@ class PoseDetector:
         self.time = time()
 
         # Process image and detect pose landmarks
-        results = self.model(image)[0].cpu().numpy() # Only one frame at a time
+        results = copy.deepcopy(self.model(image)[0].cpu().numpy())
 
-        # # Set names for humans
-        # for i in range(len(results.boxes.cls)):
-        #     results.boxes.cls[i] = i
-        #     results.names[i] = f"person {i}"
+        # Set names for humans
+        for i in range(len(results.boxes.cls)):
+            results.boxes.cls[i] = i
+            results.names[i] = f"person {i}"
 
         # Initialize empty dictionary for pose data
         pose_data = {}
