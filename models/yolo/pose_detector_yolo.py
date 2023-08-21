@@ -40,11 +40,12 @@ class PoseDetector:
 
         # Process image and detect pose landmarks
         results = copy.deepcopy(self.model(image)[0].cpu().numpy())
-
+        sorted_indices = self.sort_results(results, order="left_to_right")  # or "up_to_down"
+    
         # Set names for humans
         for i in range(len(results.boxes.cls)):
-            results.boxes.cls[i] = i
-            results.names[i] = f"person {i}"
+            results.boxes.cls[i] = sorted_indices[i]
+            results.names[sorted_indices[i]] = f"person {sorted_indices[i]}"
 
         # Initialize empty dictionary for pose data
         pose_data = {}
@@ -52,24 +53,27 @@ class PoseDetector:
         self.num_humans = len(results)
         pose_data["/num_humans"] = self.num_humans
 
-        # Calculate pose data
-        for human_idx, result in enumerate(results):
-            # Calculate pose data
-            human_pose = self.calculate_pose(result, human_idx)
-            pose_data.update(human_pose)
-
-            # Calculate normalized pose data
-            normalized_pose = self.calculate_normalized_pose(result, human_idx)
-            pose_data.update(normalized_pose)
-
-            # Calculate pose velocity
-            pose_velocity = self.calculate_pose_velocity(normalized_pose, human_idx)
-            pose_data.update(pose_velocity)
-
         if self.num_humans > 0:
-            # Calculate pose distance between humans
-            pose_distance = self.calculate_pose_distance(pose_data)
-            pose_data.update(pose_distance)
+            # Calculate pose data
+            for human_idx in sorted_indices:
+                result = results[human_idx]
+
+                # Calculate pose data
+                human_pose = self.calculate_pose(result, human_idx)
+                pose_data.update(human_pose)
+
+                # Calculate normalized pose data
+                normalized_pose = self.calculate_normalized_pose(result, human_idx)
+                pose_data.update(normalized_pose)
+
+                # Calculate pose velocity
+                pose_velocity = self.calculate_pose_velocity(normalized_pose, human_idx)
+                pose_data.update(pose_velocity)
+
+            if self.num_humans > 0:
+                # Calculate pose distance between humans
+                pose_distance = self.calculate_pose_distance(pose_data)
+                pose_data.update(pose_distance)
 
         # Draw pose landmarks on image
         annotated_frame = results.plot()
@@ -80,6 +84,33 @@ class PoseDetector:
 
         # Return pose data dictionary
         return pose_data, annotated_frame
+
+    def sort_results(self, results, order="left_to_right"):
+        """ Sort the YOLO results based on the given order. 
+        
+        Args:
+            results (YOLOv8Result): The results object from YOLOv8 model.
+            order (str): The order for sorting. Can be "left_to_right" or "up_to_down".
+            
+        Returns:
+            sorted_results (YOLOv8Result): The sorted results object.
+        """
+        
+        # Extract bounding box data
+        bboxes = results.boxes.xyxyn
+        
+        # Calculate center of the bounding boxes
+        centers = [(bbox[0] + bbox[2]) / 2 for bbox in bboxes]
+        
+        # Sort based on the desired order
+        if order == "left_to_right":
+            sorted_indices = np.argsort(centers)
+        elif order == "up_to_down":
+            sorted_indices = np.argsort(centers)
+        else:
+            raise ValueError("Invalid sort order!")
+        
+        return sorted_indices
 
     def calculate_pose(self, result, human_index=0):
         """ Calculate pose data from a YOLOv8n result.
