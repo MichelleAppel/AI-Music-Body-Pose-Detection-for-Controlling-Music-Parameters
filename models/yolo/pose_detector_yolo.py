@@ -40,7 +40,7 @@ class PoseDetector:
 
         # Process image and detect pose landmarks
         results = copy.deepcopy(self.model(image)[0].cpu().numpy())
-        sorted_indices = self.sort_results(results, order="big_to_small")  # or "up_to_down"
+        sorted_indices = self.sort_results(results, order="left_to_right")  # or "up_to_down"
     
         # Set names for humans
         for i in range(len(results.boxes.cls)):
