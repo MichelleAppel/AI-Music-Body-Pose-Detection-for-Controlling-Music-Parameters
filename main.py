@@ -23,6 +23,7 @@ def main():
     parser.add_argument("--no-osc", action="store_true", help="Disable sending OSC messages. Useful for testing pose detection without sending OSC messages")
     parser.add_argument("--image", type=str, help="Path to the source image for debugging") # New command line argument
     parser.add_argument("--video", type=str, help="Path to the source video")
+    parser.add_argument("--cam", type=int, default=0, help="Camera input number")
 
     args = parser.parse_args()
 
@@ -41,7 +42,7 @@ def main():
             return
         cv2.namedWindow("Pose Detection", cv2.WINDOW_NORMAL)
     else:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(args.cam)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
         cv2.namedWindow("Pose Detection", cv2.WINDOW_NORMAL)

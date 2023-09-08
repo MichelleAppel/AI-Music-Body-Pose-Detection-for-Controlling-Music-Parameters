@@ -85,12 +85,13 @@ class PoseDetector:
         # Return pose data dictionary
         return pose_data, annotated_frame
 
-    def sort_results(self, results, order="left_to_right"):
+    def sort_results(self, results, order="left_to_right", rule="left_corners"):
         """ Sort the YOLO results based on the given order. 
         
         Args:
             results (YOLOv8Result): The results object from YOLOv8 model.
             order (str): The order for sorting. Can be "left_to_right" or "up_to_down".
+            rule (str): The rule for sorting. Can be "left_corners", "right_corners" or "centers".
             
         Returns:
             sorted_results (YOLOv8Result): The sorted results object.
@@ -98,6 +99,9 @@ class PoseDetector:
         
         # Extract bounding box data
         bboxes = results.boxes.xyxyn
+
+        # Calculate the corners of the bounding boxes
+        corners = [(bbox[0], bbox[1]) for bbox in bboxes]
         
         # Calculate center of the bounding boxes
         centers = [(bbox[0] + bbox[2]) / 2 for bbox in bboxes]
@@ -107,7 +111,14 @@ class PoseDetector:
         
         # Sort based on the desired order
         if order == "left_to_right":
-            sorted_indices = np.argsort(centers)
+            if rule == "left_corners":
+                sorted_indices = np.argsort([c[0] for c in corners])
+            elif rule == "right_corners":
+                sorted_indices = np.argsort([c[1] for c in corners])
+            elif rule == "centers":
+                sorted_indices = np.argsort(centers)
+            else:
+                raise NotImplementedError(f"Rule {rule} not implemented!")
         elif order == "up_to_down":
             sorted_indices = np.argsort([bbox[1] for bbox in bboxes])
         elif order == "big_to_small":
@@ -184,7 +195,7 @@ class PoseDetector:
             relative_keypoint = keypoint - np.array([bbox_center_x, bbox_center_y])
 
             # Normalize relative pose by bounding box dimensions (optional)
-            normalized_keypoint = relative_keypoint / np.array([bbox_width, bbox_height])
+            normalized_keypoint = (relative_keypoint / np.array([bbox_width, bbox_height])) + 0.5
 
             # Add pose data to pose dictionary
             x, y = normalized_keypoint
@@ -193,7 +204,7 @@ class PoseDetector:
 
         # Return pose data dictionary
         return pose
-  
+
     def calculate_pose_velocity(self, normalized_pose, human_index=0):
         """ Calculate pose velocity from a normalized pose.
 
