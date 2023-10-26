@@ -2,8 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Introduction
-
 This project harnesses the power of body pose detection to manipulate music parameters such as tempo or volume, determined by the user's movements. Utilizing the Mediapipe library, the program detects the user's body landmarks and computes their velocity over time. The resulting pose data is transformed into OSC messages which can then interface with music software such as Ableton Live or Max/MSP.
 
 ![music_pose](https://user-images.githubusercontent.com/17069785/227744014-4da1efee-03a4-4cc4-a96f-0af867840a21.png)
