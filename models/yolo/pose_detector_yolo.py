@@ -152,8 +152,16 @@ class PoseDetector:
             keypoint = keypoints[index]
             # Add pose data to pose dictionary
             x, y = keypoint
-            pose[f"/{human_index}/{self.body_parts.body_parts[index]}/pose/x"] = x.item()
-            pose[f"/{human_index}/{self.body_parts.body_parts[index]}/pose/y"] = y.item()
+            x, y = x.item(), y.item()
+
+            if x == 0 and y == 0:
+                pass
+            else:
+                x = 1 - x
+                y = 1 - y
+
+            pose[f"/{human_index}/{self.body_parts.body_parts[index]}/pose/x"] = x
+            pose[f"/{human_index}/{self.body_parts.body_parts[index]}/pose/y"] = y
 
         # Return pose data dictionary
         return pose

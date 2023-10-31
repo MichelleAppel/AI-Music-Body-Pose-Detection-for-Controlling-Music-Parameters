@@ -10,10 +10,10 @@ from osc_sender import OSCSender
 
 import time
 
-max_FPS = 120
+max_FPS = 30
 
-FRAME_WIDTH = 1920
-FRAME_HEIGHT = 1080
+FRAME_WIDTH = 960
+FRAME_HEIGHT = 1706
 
 def main():
     # Parse command line arguments - to specify the IP address and port to send OSC messages to
@@ -27,6 +27,9 @@ def main():
 
     args = parser.parse_args()
 
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter('output.mp4', fourcc, max_FPS, (FRAME_WIDTH, FRAME_HEIGHT))
+
     # Initialize pose detector and OSC sender
     pose_detector = PoseDetector()
     if not args.no_osc:
@@ -37,6 +40,9 @@ def main():
         frame = cv2.imread(args.image)
     elif args.video:
         cap = cv2.VideoCapture(args.video)
+        # Max fps
+        cap.set(cv2.CAP_PROP_FPS, max_FPS)
+
         if not cap.isOpened():
             print("Error: Could not open video file.")
             return
@@ -47,24 +53,28 @@ def main():
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
         cv2.namedWindow("Pose Detection", cv2.WINDOW_NORMAL)
 
+    t0 = time.time()
     # Main loop
     while True:
-        # t0 = time.time()
-
         # Capture frame from webcam
         if args.image:
             if not frame.any():
                 print("Error: Could not load image.")
                 break
         elif args.video or not args.image:
+            # Calculate frame according to time
+            # t = time.time()
+            # frame = int((t-t0)*max_FPS)
+            # cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
             ret, frame = cap.read()
+
             if not ret:
                 break
+                # t0 = time.time()
 
             # Flip frame horizontally for mirror effectq
-            frame = cv2.flip(frame, 1)
+            # frame = cv2.flip(frame, 1)
 
-            
         # Detect pose and send OSC messages (if enabled)
         pose_data, annotated_frame = pose_detector.detect_pose(frame)
         if args.image:
@@ -75,6 +85,7 @@ def main():
                 osc_sender.send_message(address, value) # Send OSC message
 
         # Display pose in window
+        out.write(annotated_frame)
         cv2.imshow("Pose Detection", annotated_frame)
 
         # Exit on 'q' key press
@@ -91,6 +102,7 @@ def main():
 
     # Release webcam and close window
     cap.release()
+    out.release()
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
